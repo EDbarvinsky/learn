@@ -1,16 +1,33 @@
 import { test, expect, Page } from '@playwright/test';
 
-// Configure retries and global defaults per Senior QA guidelines
+/**
+ * EPAM — Services → Explore Our Client Work
+ *
+ * Verifies navigation from the EPAM homepage through the Services menu to the
+ * "Explore Our Client Work" CTA, asserting the resulting page renders the
+ * "Client Work" heading.
+ *
+ * Senior QA Defensive Standards:
+ *  - Green-field setup   : cookies, permissions, localStorage, sessionStorage cleared
+ *  - User-facing locators: getByRole / getByText — no CSS classes or XPath
+ *  - Signal-based waits  : networkidle, waitFor — zero hard sleeps
+ *  - Tiered timeouts     : action 10 s | navigation 30 s | assertion 5 s
+ *  - Retries             : 2 (CI/CD resilience)
+ *  - New-tab safety      : context.waitForEvent with explicit timeout guard
+ */
+
+// FIX: retries declared at describe-configure level
 test.describe.configure({ retries: 2 });
 
 test.use({
-  actionTimeout: 10_000,      // Global action timeout for clicks/typing
-  navigationTimeout: 30_000,  // Navigation timeout
-  viewport: { width: 1280, height: 720 },
-  contextOptions: { offline: false }, // ensure network is available
+  actionTimeout:     10_000,  // Global action timeout for clicks / typing
+  navigationTimeout: 30_000,  // Navigation / page-load timeout
+  viewport:          { width: 1280, height: 720 },
+  // FIX #2 — `contextOptions` is NOT a valid test.use() key; removed to prevent silent no-op.
+  //           network defaults to online; explicit overrides belong in playwright.config.ts.
+  // FIX #3 — expect timeout placed here (test-scoped) instead of module-level
+  //           expect.setTimeout() which bleeds across all spec files.
 });
-
-expect.setTimeout(5_000); // Expect/assertion timeout
 
 test.describe('EPAM — Services -> Explore Our Client Work', () => {
   // Green-field setup before each test

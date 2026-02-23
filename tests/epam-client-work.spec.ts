@@ -82,22 +82,29 @@ test.describe('EPAM — Services → Explore Our Client Work', () => {
     // Ensure actionable
     await exploreLink.scrollIntoViewIfNeeded();
 
-    // 4) Click the link and handle possible new tab
-    // Prepare to catch a new page if the link opens target=_blank
-    const newPagePromise = context.waitForEvent('page').catch(() => null);
-    await exploreLink.click();
-    const newPage = await Promise.race([
-      newPagePromise,
-      (async () => { /* resolved if no new page within navigation timeout */ return null; })()
-    ]);
-    const targetPage: Page = newPage ?? page;
+    // 4) Click the link and handle possible new tab (target=_blank)
+    // FIX #1 — the old Promise.race had an immediately-resolving IIFE as the second branch,
+    //           meaning newPage was ALWAYS null. Fixed: use a timed race with explicit timeout.
+    // FIX #7 — waitForEvent now has an explicit timeout so it does not hang indefinitely.
+    const NEW_TAB_TIMEOUT_MS = 5_000;
+    const newTabPromise: Promise<Page | null> = context
+      .waitForEvent('page', { timeout: NEW_TAB_TIMEOUT_MS })
+      .catch(() => null); // resolves null if no new tab opens within timeout
 
-    // Wait for navigation/settle
+    await exploreLink.click();
+
+    // Give the browser a moment to open a new tab; if none appears, stay on current page
+    const newTab = await newTabPromise;
+    const targetPage: Page = newTab ?? page;
+
+    // Wait for the target page to fully settle
     await targetPage.waitForLoadState('networkidle');
 
-    // 5) Verify "Client Work" text is visible on the resulting page
-    const clientWorkText = targetPage.getByText(/Client Work/i);
-    await expect(clientWorkText).toBeVisible();
+    // 5) Verify "Client Work" heading is visible on the resulting page
+    // FIX #6 — replaced overly-broad getByText (matches any element) with getByRole('heading')
+    //           for a precise, semantically meaningful assertion.
+    const clientWorkHeading = targetPage.getByRole('heading', { name: /Client Work/i });
+    await expect(clientWorkHeading).toBeVisible();
   });
 
   // Cleanup: ensure context closed to avoid leakage (defensive)

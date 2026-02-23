@@ -62,8 +62,9 @@ test.describe('EPAM — Services → Explore Our Client Work', () => {
       await expect(services).toBeVisible();
       await services.click();
       await page.waitForLoadState('networkidle');
-    } catch {
-      // Fallback: direct navigation to Services page to avoid pointer interception issues
+    } catch (err) {
+      // FIX #5 — log instead of silently swallowing; then fallback to direct navigation
+      console.warn('[WARN] Services menu click failed, falling back to direct navigation:', err);
       await page.goto('https://www.epam.com/services', { waitUntil: 'networkidle', timeout: 30_000 });
     }
 

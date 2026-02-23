@@ -107,13 +107,13 @@ test.describe('EPAM — Services → Explore Our Client Work', () => {
     await expect(clientWorkHeading).toBeVisible();
   });
 
-  // Cleanup: ensure context closed to avoid leakage (defensive)
+  // Cleanup: clear cookies after each test.
+  // FIX #4 — removed context.close() — the Playwright test runner manages the context lifecycle.
+  //           Manually calling context.close() on a runner-managed context causes a double-close
+  //           error and can mask real test failures even inside a try/catch.
   test.afterEach(async ({ context }) => {
-    try {
-      await context.clearCookies();
-    } catch {}
-    try {
-      await context.close();
-    } catch {}
+    await context.clearCookies().catch((err) =>
+      console.warn('[WARN] afterEach clearCookies failed:', err)
+    );
   });
 });

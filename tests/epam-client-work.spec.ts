@@ -72,8 +72,9 @@ test.describe('EPAM — Services → Explore Our Client Work', () => {
     let exploreLink = page.getByRole('link', { name: /Explore our client work/i });
     try {
       await expect(exploreLink).toBeVisible();
-    } catch {
-      // If role-based locator fails (DOM variations), try text-based fallback
+    } catch (err) {
+      // FIX #5 — log instead of silently swallowing; then fallback to text-based locator
+      console.warn('[WARN] getByRole for "Explore our client work" failed, trying getByText fallback:', err);
       exploreLink = page.getByText(/Explore our client work|Explore Our Client Work/i);
       await expect(exploreLink).toBeVisible();
     }

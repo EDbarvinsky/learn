@@ -29,7 +29,7 @@ test.use({
   //           expect.setTimeout() which bleeds across all spec files.
 });
 
-test.describe('EPAM — Services -> Explore Our Client Work', () => {
+test.describe('EPAM — Services → Explore Our Client Work', () => {
   // Green-field setup before each test
   test.beforeEach(async ({ page, context }) => {
     // Ensure no cookies/permissions remain
